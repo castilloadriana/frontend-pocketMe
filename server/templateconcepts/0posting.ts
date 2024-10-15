@@ -1,18 +1,16 @@
 import { ObjectId } from "mongodb";
 
 import DocCollection, { BaseDoc } from "../framework/doc";
-import { NotAllowedError, NotFoundError } from "./errors";
+import { NotAllowedError, NotFoundError } from "./0errors";
 
-
-/* export interface PostOptions {
-  backgroundColor?: string;       //if I wanted to let users edit the background color of their 
-} */
+export interface PostOptions {
+  backgroundColor?: string;
+}
 
 export interface PostDoc extends BaseDoc {
   author: ObjectId;
   content: string;
-  folderid: ObjectId; //journalid
-  // options?: PostOptions;
+  options?: PostOptions;
 }
 
 /**
@@ -28,13 +26,9 @@ export default class PostingConcept {
     this.posts = new DocCollection<PostDoc>(collectionName);
   }
 
-
-  //should only be able to create a post if the journal already exists 
-  async create(author: ObjectId, folderid: ObjectId, content: string) {
-    const _id = await this.posts.createOne({ author, folderid, content });
-    const post = await this.posts.readOne({ _id }); 
-    return { msg: "Post successfully created!", post};
-    
+  async create(author: ObjectId, content: string, options?: PostOptions) {
+    const _id = await this.posts.createOne({ author, content, options });
+    return { msg: "Post successfully created!", post: await this.posts.readOne({ _id }) };
   }
 
   async getPosts() {
@@ -42,19 +36,14 @@ export default class PostingConcept {
     return await this.posts.readMany({}, { sort: { _id: -1 } });
   }
 
-  async deletePosts(folderid: ObjectId) {
-    // Deletes all posts from a specific folder! 
-    return await this.posts.deleteMany({ folderid });
-  }
-
   async getByAuthor(author: ObjectId) {
     return await this.posts.readMany({ author });
   }
 
-  async update(_id: ObjectId, folderid?: ObjectId, content?: string) {
-    // Note that if content or options is undefined, those fields will *not* be updated   //? is used when its optional to edit them
+  async update(_id: ObjectId, content?: string, options?: PostOptions) {
+    // Note that if content or options is undefined, those fields will *not* be updated
     // since undefined values for partialUpdateOne are ignored.
-    await this.posts.partialUpdateOne({ _id }, { folderid, content });
+    await this.posts.partialUpdateOne({ _id }, { content, options });
     return { msg: "Post successfully updated!" };
   }
 
