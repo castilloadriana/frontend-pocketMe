@@ -40,10 +40,10 @@ export default class JournalingConcept{
   }
 
 
-  async update(_id: ObjectId, name: string, privacy: boolean) {
+  async update(_id: ObjectId, name: string, privacy?: boolean) {
     // Note that if content or options is undefined, those fields will *not* be updated
     // since undefined values for partialUpdateOne are ignored.
-    await this.journals.partialUpdateOne({ _id }, {name, privacy });
+    await this.journals.partialUpdateOne({ _id }, {name: name, privacy: privacy });
     return { msg: "Journal successfully renamed!" };
   }
 

@@ -29,9 +29,9 @@ export default class HighlightingConcept {
     this.highlights = new DocCollection<HighlightDoc>(collectionName);
   }
 
-  async create(author:ObjectId, media: ObjectId, comment:string, quote?: string ) {
+  async create(author: ObjectId, media: ObjectId, comment:string, quote?: string ) {
     const _id = await this.highlights.createOne({ author, media, comment, quote});
-    return { msg: "Highlight successfully created!", post: await this.highlights.readOne({ _id }) };
+    return { msg: "Highlight successfully created!", highlight: await this.highlights.readOne({ _id }) };
   }
 
   async getHighlights() {
