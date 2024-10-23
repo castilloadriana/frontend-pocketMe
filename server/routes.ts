@@ -2,13 +2,8 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning, Journaling, Highlighting, Sticking, Bookmarking } from "./app";
-import { PostDoc } from "./concepts/posting";
+import { Authing, Bookmarking, Friending, Highlighting, Journaling, Posting, Sessioning, Sticking } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
-import { JournalDoc } from "./concepts/journaling";
-import { HighlightDoc } from "./concepts/highlighting";
-import { StickerDoc } from "./concepts/sticking";
-import { BookmarkDoc } from "./concepts/bookmarking";
 import Responses from "./responses";
 
 import { z } from "zod";
@@ -148,23 +143,23 @@ Journals
   async deleteJournal(session: SessionDoc, journalid: string) {
     const user = Sessioning.getUser(session);
     const journaloid = new ObjectId(journalid);
-    await Posting.assertAuthorIsUser(journaloid, user);
+    await Journaling.assertAuthorIsUser(journaloid, user);
     await Posting.deletePosts(journaloid); //deletes the posts inside the journal array 
-    return Posting.delete(journaloid); //deletes de journal object
+    return Journaling.delete(journaloid); //deletes de journal object
     
   }
 
   @Router.get("/journals") //get posts by author
   @Router.validate(z.object({ author: z.string().optional() }))
-  async getJournals(author?: string) {
+  async getJournals(session: SessionDoc, author?: string) {
     let journals;
     if (author) {
       const id = (await Authing.getUserByUsername(author))._id;
-      return journals = await Journaling.getByAuthor(id);
+      journals = await Journaling.getByAuthor(id);
     } else {
-      return journals = await Journaling.getJournals();
+      journals = await Journaling.getJournalsPublic();
     }
-    //return Responses.journals(journals);
+    return Responses.journals(journals);
   }
 
   // @Router.post("/journals/:journalid/posts/:postid") 
@@ -282,7 +277,7 @@ async createSticker(session: SessionDoc, postid: string, sticker: string) {
   return Sticking.create(user, post0id, sticker);
 }
 
-@Router.patch("/stickers/:id")
+@Router.patch("/stickers")
 async updateSticker(session: SessionDoc, id: string, sticker: string) {
   const user = Sessioning.getUser(session);
   const oid = new ObjectId(id);
@@ -290,13 +285,14 @@ async updateSticker(session: SessionDoc, id: string, sticker: string) {
   return await Sticking.update(oid, sticker);
 }
 
-@Router.delete("/stickers/:id")
-async deleteSticker(session: SessionDoc, postid: string) {
+@Router.delete("/stickers")
+async deleteSticker(session: SessionDoc, id: string) {
   const user = Sessioning.getUser(session);
-  const oid = new ObjectId(postid);
+  const oid = new ObjectId(id);
   await Sticking.assertAuthorIsUser(oid, user);
   return Sticking.delete(oid);
 }
+
 
 
 /* 

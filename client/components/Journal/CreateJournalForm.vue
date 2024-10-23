@@ -27,20 +27,15 @@ const emptyForm = () => {
 <template>
   <form @submit.prevent="createJournal(name, privacy)">
     <label for="name">Journal Name:</label>
-    <textarea
-      id="name"
-      v-model="name"
-      placeholder="Name your journal!"
-      required
-    ></textarea>
+    <textarea id="name" v-model="name" placeholder="Name your journal!" required ></textarea>
 
-    <label for="privacy">Private:</label>
+    <label for="privacy">Privacy:</label>
     <!-- Custom switch for privacy toggle -->
     <label class="switch">
       <input type="checkbox" v-model="privacy" />
       <span class="slider round"></span>
     </label>
-    <span>{{ privacy ? "Private" : "Public" }}</span>
+    <span>{{ privacy? "Private" : "Public" }}</span>
 
     <button type="submit" class="pure-button-primary pure-button">
       Create Journal

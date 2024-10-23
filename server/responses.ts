@@ -1,4 +1,4 @@
-import { Authing } from "./app";
+import { Authing, Journaling } from "./app";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { JournalDoc } from "./concepts/journaling";
 import { HighlightDoc } from "./concepts/highlighting";
@@ -42,11 +42,14 @@ export default class Responses {
     return { ...journal, author: author.username };
   }
 
+  
+
   /**
    * Same as {@link journal} but for an array of JournalDoc for improved performance.
    */
   static async journals(journals: JournalDoc[]) {
     const authors = await Authing.idsToUsernames(journals.map((journal) => journal.author));
+    const journalname = await Journaling.idsToJournalName(journals.map((journal) => journal._id));
     return journals.map((journal, i) => ({ ...journal, author: authors[i] }));
   }
 

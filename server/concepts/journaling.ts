@@ -35,8 +35,25 @@ export default class JournalingConcept{
    return await this.journals.readMany({}, { sort: { _id: -1 } });
   }
 
+  async idsToJournalName(ids: ObjectId[]) {
+    const journals = await this.journals.readMany({ _id: { $in: ids } });
+
+    // Store strings in Map because ObjectId comparison by reference is wrong
+    const idToJournalName = new Map(journals.map((journal) => [journal._id.toString(), journal]));
+    return ids.map((id) => idToJournalName.get(id.toString())?.name ?? "DELETED_journal");
+  }
+
+  async getJournalsPublic() {
+    // Returns all Journals! You might want to page for better client performance
+   return await this.journals.readMany({privacy: false}, { sort: { _id: -1 } });
+  }
+
   async getByAuthor(author: ObjectId) {
     return await this.journals.readMany({ author });
+  }
+
+  async getByAuthorPublic (author: ObjectId) {
+    return await this.journals.readMany({ author, privacy: false });
   }
 
 
@@ -47,7 +64,6 @@ export default class JournalingConcept{
     return { msg: "Journal successfully renamed!" };
   }
 
-  //fix this 
   async addToJournal(journal: ObjectId, item: ObjectId) {
     // Note that if content or options is undefined, those fields will *not* be updated
     // since undefined values for partialUpdateOne are ignored.
@@ -73,7 +89,17 @@ export default class JournalingConcept{
       throw new JournalAuthorNotMatchError(user, _id);
     }
   }
-
+  
+  async assertAuthorIsUserBool(_id: ObjectId, user: ObjectId) {
+    const journal = await this.journals.readOne({ _id });
+    if (!journal) {
+      throw new NotFoundError(`Journal ${_id} does not exist!`);
+    }
+    if (journal.author.toString() !== user.toString()) {
+      return false;
+    }
+    return true;
+  }
 
 }
 

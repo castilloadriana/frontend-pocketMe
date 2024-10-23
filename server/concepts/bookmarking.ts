@@ -42,14 +42,21 @@ export default class BookmarkingConcept{
 
 // first check if the user has already created a bookmark if yes then proceed to add to the array 
   async addToBookmarks(author: ObjectId, item: ObjectId, ) {
-    const bookmarkdoc = await this.bookmarks.readOne({author});
+    let bookmarkdoc = await this.bookmarks.readOne({author}); 
+    if (bookmarkdoc === null) {
+         //throw new NotFoundError("No bookmarks folder yet, will create one "); 
+         //attempted to do something like Bookmarking.create(user) but not sure how 
+      bookmarkdoc = await this.create( author );
+      await this.bookmarks.partialUpdateOne({ }, {items: bookmarkdoc.items.concat(item)});
+      return { msg: "Post has been bookmarked!" };
 
-     if (bookmarkdoc === null) {
-         throw new NotFoundError("No bookmarks folder yet, will create one ");
+     }else{
+      await this.bookmarks.partialUpdateOne({ }, {items: bookmarkdoc.items.concat(item)});
+      return { msg: "Post has been bookmarked!" };
      }
-    await this.bookmarks.partialUpdateOne({ }, {items: bookmarkdoc.items.concat(item)});
-    return { msg: "Post has been bookmarked!" };
   }
+     
+  
 
   async delete(author: ObjectId, item: ObjectId) {
     const bookmarkdoc = await this.bookmarks.readOne({author});
