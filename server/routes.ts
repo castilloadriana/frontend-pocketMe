@@ -299,18 +299,18 @@ async deleteSticker(session: SessionDoc, id: string) {
 Bookmarks
  */
 
+/* 
+Bookmarks
+ */
+
 @Router.post("/bookmarks")
 async addBookmark(session: SessionDoc, postid: string) {
   const user = Sessioning.getUser(session);
   const post0id = new ObjectId(postid);
 
-  //has to check if they even have bookmarks yet or else it creates the bookmark folder
-  const bookmarkFolder = await Bookmarking.getByAuthor(user);
-  if (!bookmarkFolder) {
-    await Bookmarking.create(user);
-  }
   return Bookmarking.addToBookmarks(user, post0id);
 }
+
 
 @Router.get("/bookmarks") //get bookmarks by author
 @Router.validate(z.object({ author: z.string().optional() }))
