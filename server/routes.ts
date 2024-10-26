@@ -149,14 +149,24 @@ Journals
     
   }
 
-  @Router.get("/journals") //get posts by author
-  @Router.validate(z.object({ author: z.string().optional() }))
+  @Router.get("/journals") //get journals by author
   async getJournals(session: SessionDoc, author?: string) {
     let journals;
+    console.log('author');
+
     if (author) {
-      const id = (await Authing.getUserByUsername(author))._id;
-      journals = await Journaling.getByAuthor(id);
+      const user = Sessioning.getUser(session); //if there is no author you cant get user
+      const idAuthor = (await Authing.getUserByUsername(author))._id;
+      if (idAuthor.equals(user) ){
+        journals = await Journaling.getByAuthor(idAuthor); // Fetch both public and private journals
+        console.log("just did idAuthor.equals(user)");
+      } else {
+        journals = await Journaling.getByAuthorPublic(idAuthor); // Fetch only public journals
+        console.log("couldnt satisfy idAuthor.equals(user)" );
+      }
+
     } else {
+      console.log("getting all users public journals")
       journals = await Journaling.getJournalsPublic();
     }
     return Responses.journals(journals);
@@ -178,13 +188,31 @@ Journals
 
 /* 
 Posts
- */
-
 @Router.get("/posts") //get posts by author
 @Router.validate(z.object({ author: z.string().optional() }))
 async getPosts(author?: string) {
   let posts;
   if (author) {
+    const id = (await Authing.getUserByUsername(author))._id;
+    posts = await Posting.getByAuthor(id);
+  } else {
+    posts = await Posting.getPosts();
+  }
+  return Responses.posts(posts);
+}
+
+ */
+//editing this to show posts of a specific journal 
+
+@Router.get("/posts") //get posts by author
+@Router.validate(z.object({ author: z.string().optional() }))
+async getPosts(author?: string, journal?: string) {
+  let posts;
+  if (author && journal) {
+    const id = (await Authing.getUserByUsername(author))._id;
+    const journalid = new ObjectId(journal);
+    posts = await Posting.getPostsfromJournal(id, journalid);
+  } else if (author) {
     const id = (await Authing.getUserByUsername(author))._id;
     posts = await Posting.getByAuthor(id);
   } else {
@@ -295,21 +323,17 @@ async deleteSticker(session: SessionDoc, id: string) {
 
 
 
-/* 
-Bookmarks
- */
+// /* 
+// Bookmarks
+//  */
 
-/* 
-Bookmarks
- */
+// @Router.post("/bookmarks")
+// async addBookmark(session: SessionDoc, postid: string) {
+//   const user = Sessioning.getUser(session);
+//   const post0id = new ObjectId(postid);
 
-@Router.post("/bookmarks")
-async addBookmark(session: SessionDoc, postid: string) {
-  const user = Sessioning.getUser(session);
-  const post0id = new ObjectId(postid);
-
-  return Bookmarking.addToBookmarks(user, post0id);
-}
+//   return Bookmarking.addToBookmarks(user, post0id);
+// }
 
 
 @Router.get("/bookmarks") //get bookmarks by author

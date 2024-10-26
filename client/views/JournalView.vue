@@ -10,7 +10,7 @@ const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
 <template>
   <main>
     <h1>Journals</h1>
-    <JournalListComponent />
+    < />
   </main>
 </template>
 

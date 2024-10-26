@@ -2,18 +2,22 @@
 import CreateJournalForm from "@/components/Journal/CreateJournalForm.vue";
 import JournalComponent from "@/components/Journal/JournalComponent.vue";
 import EditJournalForm from "@/components/Journal/EditJournalForm.vue";
+import ProfilePostListComponent from "@/components/Post/ProfilePostListComponent.vue";
+
+
 import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
-import SearchJournalForm from "./SearchJournalForm.vue";
 
 const { isLoggedIn } = storeToRefs(useUserStore());
+const { currentUsername } = storeToRefs(useUserStore());
 
 const loaded = ref(false);
 let journals = ref<Array<Record<string, string>>>([]);
 let editing = ref("");
 let searchAuthor = ref("");
+let selectedJournal = ref("");  // Track the selected journal ID
 
 async function getJournals(author?: string) {
   let query: Record<string, string> = author !== undefined ? { author } : {};
@@ -31,28 +35,55 @@ function updateEditing(id: string) {
   editing.value = id;
 }
 
+function handleJournalSelect(journalId: string) {
+  selectedJournal.value = journalId;  // Update selected journal
+}
+
+function resetJournalSelection() {
+  selectedJournal.value = "";  // Reset to show all journals
+}
+
 onBeforeMount(async () => {
-  await getJournals();
+  await getJournals(currentUsername.value);
   loaded.value = true;
 });
 </script>
 
+
 <template>
-  <section v-if="isLoggedIn">
+  <!-- Show the journal list and create form if no journal is selected -->
+  <section v-if="isLoggedIn && !selectedJournal">
     <h2>Create a journal:</h2>
     <CreateJournalForm @refreshJournals="getJournals" />
   </section>
-  <div class="row">
-    <h2 v-if="!searchAuthor">Journals:</h2>
-    <h2 v-else>Journals by {{ searchAuthor }}:</h2>
-    <!-- <SearchJournalForm @getJournalsByAuthor="getJournals" /> -->
-  </div>
-  <section class="journals" v-if="loaded && journals.length !== 0">
+
+  <!-- Journal list -->
+  <section class="journals" v-if="loaded && journals.length !== 0 && !selectedJournal">
     <article v-for="journal in journals" :key="journal._id">
-      <JournalComponent v-if="editing !== journal._id" :journal="journal" @refreshJournals="getJournals" @editJournal="updateEditing" />
-      <EditJournalForm v-else :journal="journal" @refreshJournals="getJournals" @editJournal="updateEditing" />
+      <JournalComponent 
+        v-if="editing !== journal._id" 
+        :journal="journal" 
+        @refreshJournals="getJournals" 
+        @editJournal="updateEditing" 
+        @openJournal="handleJournalSelect"
+      />
+      <EditJournalForm 
+        v-else 
+        :journal="journal" 
+        @refreshJournals="getJournals" 
+        @editJournal="updateEditing" 
+      />
     </article>
   </section>
+  
+  <!-- Journal posts for the selected journal -->
+  <section v-else-if="selectedJournal">
+    <button @click="resetJournalSelection">Back to Journals</button>
+    <h2>Posts for Journal {{ selectedJournal }}</h2>
+    <!-- Add component to display posts related to selectedJournal -->
+    <ProfilePostListComponent :journalId="selectedJournal" />
+  </section>
+
   <p v-else-if="loaded">No journals found</p>
   <p v-else>Loading...</p>
 </template>

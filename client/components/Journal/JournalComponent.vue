@@ -5,7 +5,7 @@ import { storeToRefs } from "pinia";
 import { fetchy } from "../../utils/fetchy";
 
 const props = defineProps(["journal"]);
-const emit = defineEmits(["editJournal", "refreshJournals"]);
+const emit = defineEmits(["editJournal", "refreshJournals", "openJournal"]);
 const { currentUsername } = storeToRefs(useUserStore());
 
 const deleteJournal = async () => {
@@ -16,24 +16,35 @@ const deleteJournal = async () => {
   }
   emit("refreshJournals");
 };
+
+const openJournalPosts = () => {
+  emit("openJournal", props.journal._id); // Emits the journal ID when the user clicks on the journal
+};
 </script>
 
 <template>
-  <p class="name">{{ props.journal.name }}</p>
-  <p>{{ props.journal.content }}</p>
-  <div class="base">
-    <menu v-if="props.journal.author == currentUsername">
-      <li><button class="btn-small pure-button" @click="emit('editJournal', props.journal._id)">Edit</button></li>
-      <li><button class="button-error btn-small pure-button" @click="deleteJournal">Delete</button></li>
-    </menu>
-    <article class="timestamp">
-      <p v-if="props.journal.dateCreated !== props.journal.dateUpdated">Edited on: {{ formatDate(props.journal.dateUpdated) }}</p>
-      <p v-else>Created on: {{ formatDate(props.journal.dateCreated) }}</p>
-    </article>
+  <div class="journal-container" @click="openJournalPosts">
+    <p class="name">{{ props.journal.name }}</p>
+    <p>{{ props.journal.content }}</p>
+    <div class="base">
+      <menu v-if="props.journal.author == currentUsername">
+        <li><button class="btn-small pure-button" @click="emit('editJournal', props.journal._id)">Edit</button></li>
+        <li><button class="button-error btn-small pure-button" @click="deleteJournal">Delete</button></li>
+      </menu>
+      <article class="timestamp">
+        <p v-if="props.journal.dateCreated !== props.journal.dateUpdated">Edited on: {{ formatDate(props.journal.dateUpdated) }}</p>
+        <p v-else>Created on: {{ formatDate(props.journal.dateCreated) }}</p>
+      </article>
+    </div>
   </div>
+
 </template>
 
 <style scoped>
+.journal-container {
+  cursor: pointer;
+}
+
 p {
   margin: 0em;
 }

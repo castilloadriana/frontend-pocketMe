@@ -26,7 +26,8 @@ export default class BookmarkingConcept{
 
   async create(author: ObjectId ) {
     const _id = await this.bookmarks.createOne({ author, items:[]});
-    return { msg: "Bookmarks Folder Created!"};
+    const bookmark = await this.bookmarks.readOne({ _id }); 
+    return bookmark;
   }
 
 
@@ -45,14 +46,16 @@ export default class BookmarkingConcept{
     let bookmarkdoc = await this.bookmarks.readOne({author}); 
     if (bookmarkdoc === null) {
          //throw new NotFoundError("No bookmarks folder yet, will create one "); 
-         //attempted to do something like Bookmarking.create(user) but not sure how 
       bookmarkdoc = await this.create( author );
+      if (bookmarkdoc === null) {
+        throw new NotFoundError("No bookmardoc"); 
+      }
       await this.bookmarks.partialUpdateOne({ }, {items: bookmarkdoc.items.concat(item)});
-      return { msg: "Post has been bookmarked!" };
-
+      return { msg: "Post has been bookmarked!", bookmarkdoc};
+      
      }else{
       await this.bookmarks.partialUpdateOne({ }, {items: bookmarkdoc.items.concat(item)});
-      return { msg: "Post has been bookmarked!" };
+      return { msg: "Post has been bookmarked!", bookmarkdoc};
      }
   }
      

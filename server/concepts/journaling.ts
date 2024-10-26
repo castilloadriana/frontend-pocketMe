@@ -56,7 +56,6 @@ export default class JournalingConcept{
     return await this.journals.readMany({ author, privacy: false });
   }
 
-
   async update(_id: ObjectId, name: string, privacy?: boolean) {
     // Note that if content or options is undefined, those fields will *not* be updated
     // since undefined values for partialUpdateOne are ignored.
@@ -89,17 +88,7 @@ export default class JournalingConcept{
       throw new JournalAuthorNotMatchError(user, _id);
     }
   }
-  
-  async assertAuthorIsUserBool(_id: ObjectId, user: ObjectId) {
-    const journal = await this.journals.readOne({ _id });
-    if (!journal) {
-      throw new NotFoundError(`Journal ${_id} does not exist!`);
-    }
-    if (journal.author.toString() !== user.toString()) {
-      return false;
-    }
-    return true;
-  }
+
 
 }
 

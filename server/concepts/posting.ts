@@ -42,6 +42,11 @@ export default class PostingConcept {
     return await this.posts.readMany({}, { sort: { _id: -1 } });
   }
 
+  async getPostsfromJournal(author: ObjectId, folderid: ObjectId,) {
+    // Returns posts from specific journal! You might want to page for better client performance
+    return await this.posts.readMany({author, folderid}, { sort: { _id: -1 } });
+  }
+
   async deletePosts(folderid: ObjectId) {
     // Deletes all posts from a specific folder! 
     return await this.posts.deleteMany({ folderid });
